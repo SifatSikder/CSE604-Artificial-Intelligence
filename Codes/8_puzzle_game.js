@@ -9,6 +9,26 @@ Array.prototype.twoDIndexOf = function (element) {
     return -1;
 }
 
+
+Array.prototype.have = function (newInitialState) {
+    if (this === null || this === undefined)
+        throw TypeError("Array.prototype.indexOf called on null or undefined")
+    for (let i = 0, match = true; i < this.length; i++) {
+        // console.log(newInitialState);
+        // console.log(newInitialState === this[i]);
+        for (let j = 0; j < 3; j++) {
+            for (let k = 0; k < 3; k++) {
+
+                match = match && (newInitialState[j][k] == this[i][j][k])
+                if (!match) break
+            }
+            if (!match) break
+        }
+        if (match) return true
+    }
+    return false;
+}
+
 function misplaceCount(initialState, finalState) {
     var count = 0;
     for (var i = 0; i < 3; i++) {
@@ -80,28 +100,39 @@ function swapper(initialArray, swapIndex1, swapIndex2) {
 
 function game(initialState, finalState) {
 
-    var currentInitialState = initialState;
-    var currentCost = misplaceCount(initialState, finalState);
+
 
     var blankPosition = initialState.twoDIndexOf(0)
+
+    console.log(initialState);
     var swaps = findingPossibleSwaps(initialState);
 
+    // for (let index = 0; index < swaps.length; index++) {
+    //     var newInitialState = (swapper(initialState, blankPosition, swaps[index]));
+    //     var newCost = misplaceCount(newInitialState, finalState);
+    //     if (newCost <= currentCost) {
+    //         currentCost = newCost;
+    //         currentInitialState = newInitialState;
+    //     }
+    // }
 
     for (let index = 0; index < swaps.length; index++) {
         var newInitialState = (swapper(initialState, blankPosition, swaps[index]));
-        var newCost = misplaceCount(newInitialState, finalState);
-        if (newCost < currentCost) {
-            currentCost = newCost;
-            currentInitialState = newInitialState;
+        // console.log(newInitialState);
+        // console.log(resultSteps);
+        var currentCost = misplaceCount(newInitialState, finalState);
+        if (currentCost == 0) {
+            resultSteps.push(newInitialState)
+            return
         }
-    }
 
-    if (currentCost) {
-        states.push(currentInitialState)
-        game(currentInitialState, finalState)
-    } else {
-        states.push(finalState)
+        if (!resultSteps.have(newInitialState))
+            states.push(newInitialState)
     }
+    resultSteps.push(states.shift())
+    // console.log(states[0]);
+
+    game(states[0], finalState)
 }
 
 
@@ -125,19 +156,21 @@ function printResults(states) {
 
 var initialState =
     [
-        [1, 2, 3],
-        [5, 6, 0],
-        [7, 8, 4]
+        [1, 2, 0],
+        [3, 5, 7],
+        [8, 4, 6]
     ]
 var finalState =
     [
         [1, 2, 3],
-        [5, 8, 6],
-        [0, 7, 4]
+        [4, 5, 6],
+        [7, 8, 0]
     ]
 
 const states = []
+const resultSteps = []
 states.push(initialState)
 game(initialState, finalState)
-printResults(states);
+console.log('code is here');
+console.log(resultSteps.length);
 
