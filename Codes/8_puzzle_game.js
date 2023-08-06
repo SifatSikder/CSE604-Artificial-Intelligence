@@ -9,13 +9,13 @@ Array.prototype.twoDIndexOf = function (element) {
     return -1;
 }
 
-
 Array.prototype.have = function (newInitialState) {
     if (this === null || this === undefined)
         throw TypeError("Array.prototype.indexOf called on null or undefined")
-    for (let i = 0, match = true; i < this.length; i++) {
+    for (let i = 0; i < this.length; i++) {
         // console.log(newInitialState);
         // console.log(newInitialState === this[i]);
+        var match = true;
         for (let j = 0; j < 3; j++) {
             for (let k = 0; k < 3; k++) {
 
@@ -98,9 +98,118 @@ function swapper(initialArray, swapIndex1, swapIndex2) {
     return array;
 }
 
+function writeToFile(content) {
+    const fs = require('fs');
+    fs.appendFileSync('./result.txt', content, err => {
+        if (err) console.error(err);
+    });
+}
+
+function printResults(states) {
+
+
+
+    for (let i = 0; i < states.length; i++) {
+        if (i == 0) {
+            writeToFile("Initial:");
+            writeToFile('\n\n')
+        }
+        else if (i == states.length - 1) {
+            writeToFile(`Final step number: ${i}`);
+            writeToFile('\n\n')
+
+        }
+        else {
+            writeToFile(`Intermediate step number: ${i}`);
+            writeToFile('\n\n')
+        }
+        for (let j = 0; j < 3; j++) {
+            for (let k = 0; k < states[i][j].length; k++) {
+
+                if (states[i][j][k] == 0) {
+                    states[i][j][k] = 'x'
+                }
+            }
+            console.log(JSON.stringify(states[i][j]))
+            writeToFile(JSON.stringify(states[i][j]));
+            writeToFile('\n')
+        }
+        writeToFile('\n')
+    }
+}
+
+function getLinearSequence(initialState) {
+
+    var length = initialState[0].length
+    var linearSequence = []
+    for (let i = 0; i < length; i++) {
+        for (let j = 0; j < length; j++) {
+            if (initialState[i][j]) linearSequence.push(initialState[i][j])
+        }
+    }
+    return linearSequence
+}
+
+function countInversionNumber(linearSequence) {
+
+    let count = 0;
+    for (let i = 0; i < linearSequence.length; i++) {
+        for (let j = i + 1; j < linearSequence.length; j++) {
+            if (linearSequence[i] > linearSequence[j]) count++
+        }
+    }
+    return count;
+}
+
+
+
+// var initialState =
+//     [
+//         [1, 2, 3],
+//         [4, 5, 6],
+//         [0, 7, 8]
+//     ]
+var initialState =
+    [
+        [5, 2, 8],
+        [4, 1, 7],
+        [0, 3, 6]
+    ]
+// var initialState =
+//     [
+//         [8, 1, 2],
+//         [0, 4, 3],
+//         [7, 6, 5]
+//     ]
+var finalState =
+    [
+        [1, 2, 3],
+        [4, 5, 6],
+        [7, 8, 0]
+    ]
+
+
+
+const states = []
+const resultSteps = []
+const linearSequence = getLinearSequence(initialState)
+const totalInversionNumber = countInversionNumber(linearSequence)
+
+
+if (totalInversionNumber % 2 == 1) {
+    console.log(`As the number of inversion is ${totalInversionNumber}(odd) so can not reach in goal state`);
+}
+else {
+    states.push(initialState)
+    game(initialState, finalState)
+    printResults(resultSteps);
+    console.log(`Cost of the solving is ${resultSteps.length - 1} steps`);
+}
+
+
 function game(initialState, finalState) {
 
-    for (let i = 0; i < 100; i++) {
+    for (let i = 0; i < 400000; i++) {
         var blankPosition = initialState.twoDIndexOf(0)
         var swaps = findingPossibleSwaps(initialState);
 
@@ -119,15 +228,15 @@ function game(initialState, finalState) {
                 return true
             }
 
-            if (!resultSteps.have(newInitialState))
+            if (!resultSteps.have(newInitialState) && !states.have(newInitialState))
                 states.push(newInitialState)
         }
         const b = states.shift()
         // console.log(`state number ${i + 1}`);
         // console.log(b);
         resultSteps.push(b)
+        // duplicates(resultSteps)
         initialState = states[0]
-
     }
 
     return false
@@ -137,52 +246,7 @@ function game(initialState, finalState) {
 }
 
 
-function printResults(states) {
 
-    for (let i = 0; i < states.length; i++) {
-        if (i == 0) console.log("Initial:");
-        else if (i == states.length - 1) console.log("Final:");
-        else console.log("Intermediate steps:");
-        for (let j = 0; j < 3; j++) {
-            for (let k = 0; k < states[i][j].length; k++) {
 
-                if (states[i][j][k] == 0) {
-                    states[i][j][k] = 'x'
-                }
-            }
-            console.log(states[i][j]);
-        }
-        console.log();
-    }
-}
 
-var initialState =
-    [
-        [1, 2, 3],
-        [5, 6, 4],
-        [7, 8, 0]
-    ]
-// var initialState =
-//     [
-//         [1, 2, 3],
-//         [4, 5, 6],
-//         [0, 7, 8]
-//     ]
-var finalState =
-    [
-        [1, 2, 3],
-        [5, 8, 6],
-        [0, 7, 4]
-    ]
-
-const states = []
-const resultSteps = []
-states.push(initialState)
-
-if (game(initialState, finalState)) {
-    printResults(resultSteps);
-    console.log(`Cost of the solving is ${resultSteps.length - 1} steps`);
-}
-else
-    console.log(`Infinite States Reached. Can not solve this using BFS`);
 
