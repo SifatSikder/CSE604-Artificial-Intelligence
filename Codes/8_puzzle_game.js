@@ -100,46 +100,48 @@ function swapper(initialArray, swapIndex1, swapIndex2) {
 
 function game(initialState, finalState) {
 
+    for (let i = 0; i < 100; i++) {
+        var blankPosition = initialState.twoDIndexOf(0)
+        var swaps = findingPossibleSwaps(initialState);
 
+        for (let index = 0; index < swaps.length; index++) {
+            var newInitialState = (swapper(initialState, blankPosition, swaps[index]));
 
-    var blankPosition = initialState.twoDIndexOf(0)
+            var currentCost = misplaceCount(newInitialState, finalState);
+            if (currentCost == 0) {
+                let a = states.shift()
+                // console.log(`state number ${i + 1}`);
+                // console.log(a);
+                // console.log(`state number ${i + 2}`);
+                // console.log(newInitialState);
+                resultSteps.push(a)
+                resultSteps.push(newInitialState)
+                return true
+            }
 
-    console.log(initialState);
-    var swaps = findingPossibleSwaps(initialState);
-
-    // for (let index = 0; index < swaps.length; index++) {
-    //     var newInitialState = (swapper(initialState, blankPosition, swaps[index]));
-    //     var newCost = misplaceCount(newInitialState, finalState);
-    //     if (newCost <= currentCost) {
-    //         currentCost = newCost;
-    //         currentInitialState = newInitialState;
-    //     }
-    // }
-
-    for (let index = 0; index < swaps.length; index++) {
-        var newInitialState = (swapper(initialState, blankPosition, swaps[index]));
-        // console.log(newInitialState);
-        // console.log(resultSteps);
-        var currentCost = misplaceCount(newInitialState, finalState);
-        if (currentCost == 0) {
-            resultSteps.push(newInitialState)
-            return
+            if (!resultSteps.have(newInitialState))
+                states.push(newInitialState)
         }
+        const b = states.shift()
+        // console.log(`state number ${i + 1}`);
+        // console.log(b);
+        resultSteps.push(b)
+        initialState = states[0]
 
-        if (!resultSteps.have(newInitialState))
-            states.push(newInitialState)
     }
-    resultSteps.push(states.shift())
-    // console.log(states[0]);
 
-    game(states[0], finalState)
+    return false
+
+
+
 }
 
 
 function printResults(states) {
-    console.log("Initial:");
+
     for (let i = 0; i < states.length; i++) {
-        if (i == states.length - 1) console.log("Final:");
+        if (i == 0) console.log("Initial:");
+        else if (i == states.length - 1) console.log("Final:");
         else console.log("Intermediate steps:");
         for (let j = 0; j < 3; j++) {
             for (let k = 0; k < states[i][j].length; k++) {
@@ -156,21 +158,31 @@ function printResults(states) {
 
 var initialState =
     [
-        [1, 2, 0],
-        [3, 5, 7],
-        [8, 4, 6]
+        [1, 2, 3],
+        [5, 6, 4],
+        [7, 8, 0]
     ]
+// var initialState =
+//     [
+//         [1, 2, 3],
+//         [4, 5, 6],
+//         [0, 7, 8]
+//     ]
 var finalState =
     [
         [1, 2, 3],
-        [4, 5, 6],
-        [7, 8, 0]
+        [5, 8, 6],
+        [0, 7, 4]
     ]
 
 const states = []
 const resultSteps = []
 states.push(initialState)
-game(initialState, finalState)
-console.log('code is here');
-console.log(resultSteps.length);
+
+if (game(initialState, finalState)) {
+    printResults(resultSteps);
+    console.log(`Cost of the solving is ${resultSteps.length - 1} steps`);
+}
+else
+    console.log(`Infinite States Reached. Can not solve this using BFS`);
 
