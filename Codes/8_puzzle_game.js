@@ -105,7 +105,58 @@ function writeToFile(content) {
     });
 }
 
-function printResults(states) {
+function getLinearSequence(initialState) {
+
+    var length = initialState[0].length
+    var linearSequence = []
+    for (let i = 0; i < length; i++) {
+        for (let j = 0; j < length; j++) {
+            if (initialState[i][j]) linearSequence.push(initialState[i][j])
+        }
+    }
+    return linearSequence
+}
+
+function countInversionNumber(linearSequence) {
+
+    let count = 0;
+    for (let i = 0; i < linearSequence.length; i++) {
+        for (let j = i + 1; j < linearSequence.length; j++) {
+            if (linearSequence[i] > linearSequence[j]) count++
+        }
+    }
+    return count;
+}
+
+function getParentState(finalState, solutionPath) {
+    return [...solutionPath].find(([key, val]) => {
+        var match = true
+        for (let i = 0; i < finalState.length; i++) {
+            for (let j = 0; j < finalState.length; j++) {
+                if (key[i][j] != finalState[i][j]) match = false
+            }
+        }
+        return match
+    })[1]
+}
+
+function pathFinder(solutionPath, initialState, finalState) {
+    var reversePaths = []
+    reversePaths.push(finalState);
+    var state = finalState
+    for (let i = 0; ; i++) {
+        state = getParentState(state, solutionPath)
+        reversePaths.push(state);
+        if (state == initialState) break;
+    }
+    var paths = []
+    for (let i = reversePaths.length - 1; i >= 0; i--) {
+        paths.push(reversePaths[i])
+    }
+    return paths
+}
+
+function printPaths(states) {
 
 
 
@@ -130,7 +181,6 @@ function printResults(states) {
                     states[i][j][k] = 'x'
                 }
             }
-            console.log(JSON.stringify(states[i][j]))
             writeToFile(JSON.stringify(states[i][j]));
             writeToFile('\n')
         }
@@ -138,85 +188,20 @@ function printResults(states) {
     }
 }
 
-function getLinearSequence(initialState) {
-
-    var length = initialState[0].length
-    var linearSequence = []
-    for (let i = 0; i < length; i++) {
-        for (let j = 0; j < length; j++) {
-            if (initialState[i][j]) linearSequence.push(initialState[i][j])
-        }
-    }
-    return linearSequence
-}
-
-function countInversionNumber(linearSequence) {
-
-    let count = 0;
-    for (let i = 0; i < linearSequence.length; i++) {
-        for (let j = i + 1; j < linearSequence.length; j++) {
-            if (linearSequence[i] > linearSequence[j]) count++
-        }
-    }
-    return count;
-}
-
-
-
-// var initialState =
-//     [
-//         [1, 2, 3],
-//         [4, 5, 6],
-//         [0, 7, 8]
-//     ]
-var initialState =
-    [
-        [5, 2, 8],
-        [4, 1, 7],
-        [0, 3, 6]
-    ]
-// var initialState =
-//     [
-//         [8, 1, 2],
-//         [0, 4, 3],
-//         [7, 6, 5]
-//     ]
-var finalState =
-    [
-        [1, 2, 3],
-        [4, 5, 6],
-        [7, 8, 0]
-    ]
-
-
-
-const states = []
-const resultSteps = []
-const linearSequence = getLinearSequence(initialState)
-const totalInversionNumber = countInversionNumber(linearSequence)
-
-
-if (totalInversionNumber % 2 == 1) {
-    console.log(`As the number of inversion is ${totalInversionNumber}(odd) so can not reach in goal state`);
-}
-else {
-    states.push(initialState)
-    game(initialState, finalState)
-    printResults(resultSteps);
-    console.log(`Cost of the solving is ${resultSteps.length - 1} steps`);
-}
-
 
 function game(initialState, finalState) {
 
     for (let i = 0; i < 400000; i++) {
+
         var blankPosition = initialState.twoDIndexOf(0)
         var swaps = findingPossibleSwaps(initialState);
 
         for (let index = 0; index < swaps.length; index++) {
             var newInitialState = (swapper(initialState, blankPosition, swaps[index]));
 
+
             var currentCost = misplaceCount(newInitialState, finalState);
+
             if (currentCost == 0) {
                 let a = states.shift()
                 // console.log(`state number ${i + 1}`);
@@ -225,12 +210,18 @@ function game(initialState, finalState) {
                 // console.log(newInitialState);
                 resultSteps.push(a)
                 resultSteps.push(newInitialState)
+                solutionPath.set(newInitialState, initialState)
                 return true
             }
+            if (!resultSteps.have(newInitialState) && !states.have(newInitialState)) {
 
-            if (!resultSteps.have(newInitialState) && !states.have(newInitialState))
+                solutionPath.set(newInitialState, initialState)
                 states.push(newInitialState)
+            }
         }
+
+
+
         const b = states.shift()
         // console.log(`state number ${i + 1}`);
         // console.log(b);
@@ -244,6 +235,59 @@ function game(initialState, finalState) {
 
 
 }
+
+
+
+// const initialState =
+//     [
+//         [1, 2, 3],
+//         [4, 5, 6],
+//         [0, 7, 8]
+//     ]
+const initialState =
+    [
+        [5, 2, 8],
+        [0, 1, 7],
+        [4, 3, 6]
+    ]
+// var initialState =
+//     [
+//         [8, 1, 2],
+//         [0, 4, 3],
+//         [7, 6, 5]
+//     ]
+const finalState =
+    [
+        [1, 2, 3],
+        [4, 5, 6],
+        [7, 8, 0]
+    ]
+
+
+
+const states = []
+const resultSteps = []
+const solutionPath = new Map();
+const linearSequence = getLinearSequence(initialState)
+const totalInversionNumber = countInversionNumber(linearSequence)
+
+
+if (totalInversionNumber % 2 == 1) {
+    console.log(`As the number of inversion is ${totalInversionNumber}(odd) so can not reach in goal state`);
+}
+else {
+    states.push(initialState)
+    game(initialState, finalState)
+    printPaths(pathFinder(solutionPath, initialState, finalState))
+}
+
+
+
+
+
+
+
+
 
 
 
